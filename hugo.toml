@@ -2,7 +2,8 @@ baseURL = "https://neutral.zone/"
 languageCode = "en-us"
 title = "neutral.zone"
 enableRobotsTXT = true
-paginate = 25
+[pagination]
+  pagerSize = 25
 
 [params]
   author = "J. Beck"

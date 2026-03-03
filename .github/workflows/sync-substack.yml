@@ -32,7 +32,7 @@ jobs:
           CONTENT_DIR = "content/archive"
 
           # Fetch feed
-          req = urllib.request.Request(FEED_URL, headers={"User-Agent": "neutral.zone-sync/1.0"})
+          req = urllib.request.Request(FEED_URL, headers={"User-Agent": "Mozilla/5.0 (compatible; neutral.zone-sync/1.0)"})
           with urllib.request.urlopen(req) as resp:
               feed_xml = resp.read()
 

@@ -1,0 +1,19 @@
+{{ define "main" }}
+<div class="home">
+  <div class="home-intro">
+    {{ .Content }}
+  </div>
+
+  <section style="margin-top: 2.5rem;">
+    <h2 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 0.75rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--border);">Recent</h2>
+    <ul class="post-list">
+      {{- range first 10 .Site.RegularPages.ByDate.Reverse }}
+      <li>
+        <a class="post-title" href="{{ .RelPermalink }}">{{ .Title }}</a>
+        <span class="post-date">{{ .Date.Format "Jan 2006" }}</span>
+      </li>
+      {{- end }}
+    </ul>
+  </section>
+</div>
+{{ end }}

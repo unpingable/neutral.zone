@@ -1,0 +1,33 @@
+baseURL = "https://neutral.zone/"
+languageCode = "en-us"
+title = "neutral.zone"
+enableRobotsTXT = true
+paginate = 25
+
+[params]
+  author = "J. Beck"
+  description = "Institutional diagnostics, infrastructure politics, temporal mechanics."
+  substack = "https://neutralzone.substack.com"
+
+[markup]
+  [markup.goldmark]
+    [markup.goldmark.renderer]
+      unsafe = true
+  [markup.highlight]
+    noClasses = false
+
+[outputs]
+  home = ["HTML", "RSS"]
+  section = ["HTML", "RSS"]
+
+[taxonomies]
+
+[menu]
+  [[menu.main]]
+    name = "Archive"
+    url = "/archive/"
+    weight = 1
+  [[menu.main]]
+    name = "Essays"
+    url = "/essays/"
+    weight = 2

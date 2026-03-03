@@ -6,7 +6,7 @@ enableRobotsTXT = true
   pagerSize = 25
 
 [params]
-  author = "J. Beck"
+  author = "the neutral ambassador"
   description = "Institutional diagnostics, infrastructure politics, temporal mechanics."
   substack = "https://neutralzone.substack.com"
 

@@ -1,4 +1,4 @@
 ---
 title: "Archive"
-description: "The publication. Carried forward from The Neutral Ambassador on Substack."
+description: "The publication. Carried forward from Neutral Instrumentality on Substack."
 ---

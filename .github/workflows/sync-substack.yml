@@ -20,100 +20,106 @@ jobs:
         run: sudo apt-get install -y pandoc
 
       - name: Fetch RSS and sync new posts
+        id: sync
         run: |
-          #!/usr/bin/env bash
-          set -euo pipefail
+          python3 << 'PYEOF'
+          import xml.etree.ElementTree as ET
+          import subprocess, os, re, urllib.request
+          from datetime import datetime
+          from email.utils import parsedate_to_datetime
 
-          FEED_URL="https://neutralzone.substack.com/feed"
-          CONTENT_DIR="content/archive"
-          BRANCH="sync-substack-$(date +%Y%m%d)"
-          NEW_COUNT=0
+          FEED_URL = "https://neutralzone.substack.com/feed"
+          CONTENT_DIR = "content/archive"
 
-          # Fetch the RSS feed
-          curl -sL "$FEED_URL" -o /tmp/feed.xml
+          # Fetch feed
+          req = urllib.request.Request(FEED_URL, headers={"User-Agent": "neutral.zone-sync/1.0"})
+          with urllib.request.urlopen(req) as resp:
+              feed_xml = resp.read()
 
-          # Extract items using xmllint
-          # Each item has: title, link, pubDate, content:encoded
-          ITEM_COUNT=$(xmllint --xpath 'count(//item)' /tmp/feed.xml)
+          root = ET.fromstring(feed_xml)
+          items = root.findall(".//item")
+          print(f"Found {len(items)} items in feed")
 
-          echo "Found $ITEM_COUNT items in feed"
+          new_files = []
+          existing = set(os.listdir(CONTENT_DIR))
 
-          for i in $(seq 1 "$ITEM_COUNT"); do
-            TITLE=$(xmllint --xpath "string(//item[$i]/title)" /tmp/feed.xml)
-            PUB_DATE=$(xmllint --xpath "string(//item[$i]/pubDate)" /tmp/feed.xml)
-            LINK=$(xmllint --xpath "string(//item[$i]/link)" /tmp/feed.xml)
+          for item in items:
+              title = item.findtext("title", "").strip()
+              link = item.findtext("link", "").strip()
+              pub_date = item.findtext("pubDate", "").strip()
 
-            # Extract content:encoded (CDATA)
-            CONTENT=$(xmllint --xpath "string(//item[$i]/*[local-name()='encoded'])" /tmp/feed.xml)
+              # content:encoded lives in a namespace
+              content = ""
+              for child in item:
+                  if child.tag.endswith("encoded"):
+                      content = (child.text or "").strip()
+                      break
 
-            # Parse date
-            DATE_YMD=$(date -d "$PUB_DATE" +%Y-%m-%d 2>/dev/null || echo "")
-            if [ -z "$DATE_YMD" ]; then
-              echo "SKIP (bad date): $TITLE"
-              continue
-            fi
+              if not title or not link or not pub_date or not content:
+                  print(f"SKIP (missing fields): {title or link}")
+                  continue
 
-            # Build slug from URL
-            SLUG=$(echo "$LINK" | sed 's|.*/p/||' | sed 's|[?#].*||')
-            if [ -z "$SLUG" ]; then
-              echo "SKIP (no slug): $TITLE"
-              continue
-            fi
+              # Parse date
+              try:
+                  dt = parsedate_to_datetime(pub_date)
+                  date_ymd = dt.strftime("%Y-%m-%d")
+              except Exception:
+                  print(f"SKIP (bad date): {title}")
+                  continue
 
-            FILENAME="${DATE_YMD}-${SLUG}.md"
+              # Extract slug from URL: https://neutralzone.substack.com/p/some-slug
+              slug_match = re.search(r"/p/([^?#]+)", link)
+              if not slug_match:
+                  print(f"SKIP (no slug): {title}")
+                  continue
+              slug = slug_match.group(1)
 
-            # Skip if already exists
-            if [ -f "$CONTENT_DIR/$FILENAME" ]; then
-              continue
-            fi
+              filename = f"{date_ymd}-{slug}.md"
+              if filename in existing:
+                  continue
 
-            echo "NEW: $FILENAME — $TITLE"
+              # Convert HTML to markdown via pandoc
+              result = subprocess.run(
+                  ["pandoc", "-f", "html", "-t", "markdown", "--wrap=none"],
+                  input=content, capture_output=True, text=True
+              )
+              if result.returncode != 0:
+                  print(f"SKIP (pandoc error): {title}")
+                  continue
 
-            # Convert HTML to markdown
-            BODY=$(echo "$CONTENT" | pandoc -f html -t markdown --wrap=none)
+              body = result.stdout.strip()
+              safe_title = title.replace('"', '\\"')
 
-            # Escape quotes in title
-            SAFE_TITLE=$(echo "$TITLE" | sed 's/"/\\"/g')
+              with open(os.path.join(CONTENT_DIR, filename), "w") as f:
+                  f.write(f'---\ntitle: "{safe_title}"\ndate: {date_ymd}\n---\n\n{body}\n')
 
-            # Write file
-            cat > "$CONTENT_DIR/$FILENAME" <<FRONTMATTER
-          ---
-          title: "$SAFE_TITLE"
-          date: $DATE_YMD
-          ---
+              new_files.append(filename)
+              print(f"NEW: {filename} — {title}")
 
-          $BODY
-          FRONTMATTER
+          print(f"\nTotal new: {len(new_files)}")
 
-            NEW_COUNT=$((NEW_COUNT + 1))
-          done
-
-          echo "new_count=$NEW_COUNT" >> "$GITHUB_OUTPUT"
-
-          if [ "$NEW_COUNT" -eq 0 ]; then
-            echo "No new posts found."
-            exit 0
-          fi
-
-          echo "Found $NEW_COUNT new post(s). Creating PR."
-
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git checkout -b "$BRANCH"
-          git add "$CONTENT_DIR"
-          git commit -m "sync: $NEW_COUNT new post(s) from Substack RSS"
-          git push -u origin "$BRANCH"
+          # Write output for subsequent steps
+          with open(os.environ["GITHUB_OUTPUT"], "a") as gh:
+              gh.write(f"new_count={len(new_files)}\n")
+          PYEOF
 
       - name: Create PR if new posts
-        if: success()
+        if: steps.sync.outputs.new_count != '0'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           BRANCH="sync-substack-$(date +%Y%m%d)"
-          if git ls-remote --heads origin "$BRANCH" | grep -q "$BRANCH"; then
-            gh pr create \
-              --title "Sync: new posts from Substack" \
-              --body "Automated sync from Substack RSS feed. Review before merging." \
-              --base main \
-              --head "$BRANCH"
-          fi
+          NEW_COUNT="${{ steps.sync.outputs.new_count }}"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH"
+          git add content/archive
+          git commit -m "sync: ${NEW_COUNT} new post(s) from Substack RSS"
+          git push -u origin "$BRANCH"
+
+          gh pr create \
+            --title "Sync: ${NEW_COUNT} new post(s) from Substack" \
+            --body "Automated sync from Substack RSS feed. Review before merging." \
+            --base main \
+            --head "$BRANCH"

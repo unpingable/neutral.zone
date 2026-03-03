@@ -1,0 +1,119 @@
+name: Sync from Substack RSS
+
+on:
+  schedule:
+    - cron: '0 6 * * *'  # daily at 6am UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install pandoc
+        run: sudo apt-get install -y pandoc
+
+      - name: Fetch RSS and sync new posts
+        run: |
+          #!/usr/bin/env bash
+          set -euo pipefail
+
+          FEED_URL="https://neutralzone.substack.com/feed"
+          CONTENT_DIR="content/archive"
+          BRANCH="sync-substack-$(date +%Y%m%d)"
+          NEW_COUNT=0
+
+          # Fetch the RSS feed
+          curl -sL "$FEED_URL" -o /tmp/feed.xml
+
+          # Extract items using xmllint
+          # Each item has: title, link, pubDate, content:encoded
+          ITEM_COUNT=$(xmllint --xpath 'count(//item)' /tmp/feed.xml)
+
+          echo "Found $ITEM_COUNT items in feed"
+
+          for i in $(seq 1 "$ITEM_COUNT"); do
+            TITLE=$(xmllint --xpath "string(//item[$i]/title)" /tmp/feed.xml)
+            PUB_DATE=$(xmllint --xpath "string(//item[$i]/pubDate)" /tmp/feed.xml)
+            LINK=$(xmllint --xpath "string(//item[$i]/link)" /tmp/feed.xml)
+
+            # Extract content:encoded (CDATA)
+            CONTENT=$(xmllint --xpath "string(//item[$i]/*[local-name()='encoded'])" /tmp/feed.xml)
+
+            # Parse date
+            DATE_YMD=$(date -d "$PUB_DATE" +%Y-%m-%d 2>/dev/null || echo "")
+            if [ -z "$DATE_YMD" ]; then
+              echo "SKIP (bad date): $TITLE"
+              continue
+            fi
+
+            # Build slug from URL
+            SLUG=$(echo "$LINK" | sed 's|.*/p/||' | sed 's|[?#].*||')
+            if [ -z "$SLUG" ]; then
+              echo "SKIP (no slug): $TITLE"
+              continue
+            fi
+
+            FILENAME="${DATE_YMD}-${SLUG}.md"
+
+            # Skip if already exists
+            if [ -f "$CONTENT_DIR/$FILENAME" ]; then
+              continue
+            fi
+
+            echo "NEW: $FILENAME — $TITLE"
+
+            # Convert HTML to markdown
+            BODY=$(echo "$CONTENT" | pandoc -f html -t markdown --wrap=none)
+
+            # Escape quotes in title
+            SAFE_TITLE=$(echo "$TITLE" | sed 's/"/\\"/g')
+
+            # Write file
+            cat > "$CONTENT_DIR/$FILENAME" <<FRONTMATTER
+          ---
+          title: "$SAFE_TITLE"
+          date: $DATE_YMD
+          ---
+
+          $BODY
+          FRONTMATTER
+
+            NEW_COUNT=$((NEW_COUNT + 1))
+          done
+
+          echo "new_count=$NEW_COUNT" >> "$GITHUB_OUTPUT"
+
+          if [ "$NEW_COUNT" -eq 0 ]; then
+            echo "No new posts found."
+            exit 0
+          fi
+
+          echo "Found $NEW_COUNT new post(s). Creating PR."
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH"
+          git add "$CONTENT_DIR"
+          git commit -m "sync: $NEW_COUNT new post(s) from Substack RSS"
+          git push -u origin "$BRANCH"
+
+      - name: Create PR if new posts
+        if: success()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          BRANCH="sync-substack-$(date +%Y%m%d)"
+          if git ls-remote --heads origin "$BRANCH" | grep -q "$BRANCH"; then
+            gh pr create \
+              --title "Sync: new posts from Substack" \
+              --body "Automated sync from Substack RSS feed. Review before merging." \
+              --base main \
+              --head "$BRANCH"
+          fi

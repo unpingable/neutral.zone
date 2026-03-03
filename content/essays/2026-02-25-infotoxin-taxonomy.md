@@ -3,7 +3,7 @@ title: "A Working Taxonomy of Infotoxins"
 date: 2026-02-25
 ---
 
-*James Beck — 2026*
+*the neutral ambassador — 2026*
 
 ---
 

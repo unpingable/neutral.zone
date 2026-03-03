@@ -3,8 +3,7 @@
   <header>
     <h1>{{ .Title }}</h1>
     <div class="meta">
-      {{ .Date.Format "January 2, 2006" }}
-      {{- with .Params.section }} &middot; {{ . }}{{ end }}
+      {{ .Date.Format "January 2, 2006" }} &middot; {{ .Section }}
     </div>
   </header>
   <div class="content">

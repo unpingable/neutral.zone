@@ -19,22 +19,27 @@ jobs:
       - name: Install pandoc
         run: sudo apt-get install -y pandoc
 
-      - name: Fetch RSS and sync new posts
+      - name: Fetch RSS feed
+        run: |
+          curl -sL \
+            -H "User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36" \
+            -H "Accept: application/rss+xml, application/xml, text/xml" \
+            "https://neutralzone.substack.com/feed" -o /tmp/feed.xml
+          echo "Feed size: $(wc -c < /tmp/feed.xml) bytes"
+          head -5 /tmp/feed.xml
+
+      - name: Process feed and sync new posts
         id: sync
         run: |
           python3 << 'PYEOF'
           import xml.etree.ElementTree as ET
-          import subprocess, os, re, urllib.request
-          from datetime import datetime
+          import subprocess, os, re
           from email.utils import parsedate_to_datetime
 
-          FEED_URL = "https://neutralzone.substack.com/feed"
           CONTENT_DIR = "content/archive"
 
-          # Fetch feed
-          req = urllib.request.Request(FEED_URL, headers={"User-Agent": "Mozilla/5.0 (compatible; neutral.zone-sync/1.0)"})
-          with urllib.request.urlopen(req) as resp:
-              feed_xml = resp.read()
+          with open("/tmp/feed.xml", "rb") as f:
+              feed_xml = f.read()
 
           root = ET.fromstring(feed_xml)
           items = root.findall(".//item")

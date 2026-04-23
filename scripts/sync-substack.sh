@@ -12,7 +12,9 @@ cd "$REPO_ROOT"
 
 echo "Fetching RSS feed..."
 curl -sL \
-  -H "User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36" \
+  -H 'Pragma: no-cache' \
+  -H 'Cache-Control: no-cache' \
+  -H 'User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36' \
   "$FEED_URL" -o /tmp/nz-feed.xml
 
 python3 << 'PYEOF'

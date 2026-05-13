@@ -170,16 +170,6 @@ It is an actuator attempting to enforce its own monopoly on the reference signal
 
 </div>
 
-Substack handles bold and inline code fine. That renders cleanly, preserves the parallel structure, and honestly reads better than a table anyway --- the em-dash construction has more voice.
-
-Want me to update the markdown file with that substitution?
-
-<div>
-
-------------------------------------------------------------------------
-
-</div>
-
 ## VIII. What This Proves, and What It Does Not
 
 It proves that *Zardoz* is a competent structural model of a specific failure mode: a system that achieves stability by eliminating every signal that could have told it something was wrong, then cannot distinguish achieved stability from accelerating decay because they render to the same surface.

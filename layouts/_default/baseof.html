@@ -17,6 +17,7 @@
       --link: #2c5282;
       --link-hover: #1a365d;
       --code-bg: #f0eeea;
+      --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
     }
 
     @media (prefers-color-scheme: dark) {
@@ -44,7 +45,7 @@
         Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
       background: var(--bg);
       color: var(--fg);
-      line-height: 1.7;
+      line-height: 1.6;
       max-width: 42rem;
       margin: 0 auto;
       padding: 3rem 1.5rem;
@@ -66,9 +67,10 @@
     }
 
     .site-header .site-title {
-      font-size: 1.1rem;
+      font-family: var(--font-mono);
+      font-size: 1.05rem;
       font-weight: 600;
-      letter-spacing: -0.01em;
+      letter-spacing: 0;
     }
 
     .site-header .site-title a {
@@ -84,9 +86,10 @@
     }
 
     .site-header nav a {
+      font-family: var(--font-mono);
       color: var(--fg-muted);
-      font-size: 0.9rem;
-      margin-right: 1rem;
+      font-size: 0.85rem;
+      margin-right: 1.25rem;
     }
 
     .site-header nav a:hover {
@@ -114,18 +117,20 @@
       font-size: 0.85rem;
     }
 
-    .content h2 {
-      font-size: 1.25rem;
+    main h2 {
+      font-size: 1.1rem;
       font-weight: 600;
       margin-top: 2.5rem;
       margin-bottom: 0.75rem;
+      padding-bottom: 0.3rem;
+      border-bottom: 1px solid var(--border);
     }
 
-    .content h3 {
-      font-size: 1.05rem;
+    main h3 {
+      font-size: 1rem;
       font-weight: 600;
-      margin-top: 2rem;
-      margin-bottom: 0.5rem;
+      margin-top: 1.75rem;
+      margin-bottom: 0.4rem;
     }
 
     .content p {
@@ -206,8 +211,9 @@
     }
 
     .post-list .post-date {
+      font-family: var(--font-mono);
       color: var(--fg-faint);
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       margin-left: 0.5rem;
       white-space: nowrap;
     }
@@ -221,6 +227,8 @@
       font-size: 1.4rem;
       font-weight: 700;
       margin-bottom: 0.3rem;
+      padding-bottom: 0.4rem;
+      border-bottom: 1px solid var(--border);
     }
 
     .section-header p {

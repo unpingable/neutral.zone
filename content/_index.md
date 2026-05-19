@@ -6,6 +6,8 @@ Institutional diagnostics, infrastructure politics, temporal mechanics.
 
 This is the public side of my independent work: essays, research notes, small tools, and arguments in progress. It is not my professional portfolio.
 
+The project and research index lives at [unpingable.com](https://unpingable.com); this site is the writing surface.
+
 The [archive](/archive/) carries forward from [Neutral Instrumentality](https://neutralzone.substack.com) on Substack. [Essays](/essays/) are standalone pieces. The filesystem is the index; platforms are distribution.
 
 ## Start here
@@ -24,15 +26,19 @@ A short path through the work &mdash; one piece per strand, not a greatest-hits 
 
 ### Operational testimony and admissibility
 What systems are allowed to claim, what evidence survives, and how technical surfaces preserve or destroy accountability.
+Start with: [The Lie Is Cheaper Than the Proof](/archive/2026-05-01-the-lie-is-cheaper-than-the-proof/).
 
 ### Platforms and governance
 Labels, feeds, moderation, visibility, and the machinery that turns social life into administrable state.
+Start with: [The Labeler Is the Policy](/archive/2026-04-22-the-labeler-is-the-policy/).
 
 ### Institutions and abstraction
 Metrics, procedure, plausible deniability, management language, and the conversion of judgment into operations.
+Start with: [Lying to Management](/archive/2026-05-03-lying-to-management/).
 
 ### Culture after infrastructure
 Media, AI, nostalgia, slop, and the internet&rsquo;s administrative afterlife.
+Start with: [The Inner Light and Trek&rsquo;s Dignity Budget](/archive/2026-04-19-the-inner-light-and-treks-dignity/).
 
 ## Tools / instruments
 

@@ -5,12 +5,15 @@
   {{ .Content }}
 </div>
 
+{{ range .Pages.GroupByDate "2006" }}
+<h2>{{ .Key }}</h2>
 <ul class="post-list">
-  {{- range .Pages.ByDate.Reverse }}
+  {{- range .Pages }}
   <li>
     <a class="post-title" href="{{ .RelPermalink }}">{{ .Title }}</a>
-    <span class="post-date">{{ .Date.Format "Jan 2, 2006" }}</span>
+    <span class="post-date">{{ .Date.Format "Jan 2" }}</span>
   </li>
   {{- end }}
 </ul>
+{{ end }}
 {{ end }}

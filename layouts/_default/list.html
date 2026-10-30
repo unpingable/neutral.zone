@@ -5,8 +5,18 @@
   {{ .Content }}
 </div>
 
-{{ range .Pages.GroupByDate "2006" }}
-<h2>{{ .Key }}</h2>
+{{ $pages := .RegularPages }}
+{{ if eq .Section "archive" }}
+  {{ $pages = where .Site.RegularPages "Section" "in" (slice "archive" "essays") }}
+{{ end }}
+{{ $years := $pages.GroupByDate "2006" }}
+{{ if eq .Section "archive" }}
+<nav aria-label="Archive years">
+  {{ range $years }}<a href="#year-{{ .Key }}">{{ .Key }}</a> {{ end }}
+</nav>
+{{ end }}
+{{ range $years }}
+<h2 id="year-{{ .Key }}">{{ .Key }}</h2>
 <ul class="post-list">
   {{- range .Pages }}
   <li>

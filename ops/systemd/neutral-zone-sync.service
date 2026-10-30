@@ -1,0 +1,10 @@
+[Unit]
+Description=Import Substack posts and publish neutral.zone
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/data/git/neutral.zone
+ExecStart=/usr/bin/bash /data/git/neutral.zone/scripts/sync-substack.sh --publish
+TimeoutStartSec=5min

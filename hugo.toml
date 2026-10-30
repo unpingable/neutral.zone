@@ -7,7 +7,7 @@ enableRobotsTXT = true
 
 [params]
   author = "the neutral ambassador"
-  description = "Institutional diagnostics, infrastructure politics, temporal mechanics."
+  description = "neutral's corner of the internet. Writing about power, computers, culture, and the occasional metaphysical catastrophe."
   substack = "https://neutralzone.substack.com"
 
 [markup]
@@ -28,7 +28,3 @@ enableRobotsTXT = true
     name = "Archive"
     url = "/archive/"
     weight = 1
-  [[menu.main]]
-    name = "Essays"
-    url = "/essays/"
-    weight = 2
